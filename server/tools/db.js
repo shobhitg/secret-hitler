@@ -10,6 +10,7 @@ var Utils = require('./utils');
 //SETUP
 
 Postgres.defaults.parseInt8 = true;
+Postgres.defaults.ssl = true;
 
 var connectURL = Config.LOCAL_DB_URL;
 var dbConfigured = connectURL != '';
