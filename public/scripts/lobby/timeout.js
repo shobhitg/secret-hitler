@@ -73,7 +73,7 @@ $(window.document).on('keypress', refreshTimers);
 //WINDOW
 
 $(window).on('beforeunload', function() {
-	if (!Config.TESTING && State.inGame) {
+	if (!Config.TESTING && (State.started && !State.finished)) {
 		return "You WILL NOT be removed from the game. If you'd like to leave permanently, please quit from the menu first so your fellow players know you will not return. Thank you!";
 	}
 });

@@ -629,7 +629,7 @@
 		params = {query: 'uid=' + Data.uid + '&auth=' + Data.auth + '&v=' + CommonConsts.VERSION};
 	}
 
-	var socket = SocketIO(Config.TESTING ? 'http://localhost:8004' : 'http://secrethitler.games/', params);
+	var socket = SocketIO(Config.TESTING ? 'http://localhost:8004' : 'https://secret.ethanl.ee/', params);
 
 	//PUBLIC
 
@@ -8161,6 +8161,9 @@
 		$('#lobby-'+subsection).show();
 
 		var isGameLobby = subsection == 'wait';
+		if(isGameLobby) {
+			$('.chat-container').html('');
+		}
 		Chat.toggle(isGameLobby);
 		Timeout.setGameLobby(isGameLobby);
 	};
@@ -8180,7 +8183,8 @@
 	};
 
 	var showLobby = function() {
-		State.inGame = false;
+		State.started = false;
+		State.finished = false;
 		Chat.voiceDisconnect();
 		App.showSection('lobby');
 		connectToStart();
@@ -8546,7 +8550,7 @@
 
 		setEnacting: function(enacting) {
 			enactingPolicy = enacting;
-			toggleMute();
+			toggleMute(enacting);
 		},
 
 		setDirective: setDirective,
@@ -26789,7 +26793,7 @@
 			App.playerDiv(player).addClass(State.finished ? 'quit' : 'killed');
 
 			if (State.isLocal(player)) {
-				Chat.toggleMute(true);
+				Chat.toggleMute(!quit);
 			}
 			State.currentCount -= 1;
 
@@ -27094,8 +27098,7 @@
 	//FINISH
 
 	var endGame = function(liberalWin, winMethod) {
-		if (State.inGame) {
-			State.inGame = false;
+		if (!State.finished) {
 			State.finished = true;
 			Chat.toggleMute(false);
 			Chat.setDirective('GAME OVER');
@@ -27447,7 +27450,7 @@
 
 	$('#menu-quit').on('click', function() {
 		var confirmed = true;
-		if (State.inGame) {
+		if (State.started && !State.finished) {
 			confirmed = window.confirm('Are you sure you want to abandon this game?', 'Your fellow players will be sad, and you\'ll lose points :(');
 		}
 		if (confirmed) {
@@ -28202,7 +28205,7 @@
 	//WINDOW
 
 	$(window).on('beforeunload', function() {
-		if (!Config.TESTING && State.inGame) {
+		if (!Config.TESTING && (State.started && !State.finished)) {
 			return "You WILL NOT be removed from the game. If you'd like to leave permanently, please quit from the menu first so your fellow players know you will not return. Thank you!";
 		}
 	});
@@ -28296,10 +28299,9 @@
 		Data.gameId = data.gid;
 		App.showSection('game');
 
-		State.inGame = true;
 		State.started = true;
-		State.initializedPlay = false;
 		State.finished = false;
+		State.initializedPlay = false;
 		State.positionIndex = data.startIndex;
 		State.presidentIndex = State.positionIndex;
 		State.chancellorIndex = null;

@@ -29,10 +29,9 @@ var startGame = function(data) {
 	Data.gameId = data.gid;
 	App.showSection('game');
 
-	State.inGame = true;
 	State.started = true;
-	State.initializedPlay = false;
 	State.finished = false;
+	State.initializedPlay = false;
 	State.positionIndex = data.startIndex;
 	State.presidentIndex = State.positionIndex;
 	State.chancellorIndex = null;

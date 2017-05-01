@@ -55,7 +55,7 @@ var killPlayer = function(player, isFuehrer, quit) {
 		App.playerDiv(player).addClass(State.finished ? 'quit' : 'killed');
 
 		if (State.isLocal(player)) {
-			Chat.toggleMute(true);
+			Chat.toggleMute(!quit);
 		}
 		State.currentCount -= 1;
 
