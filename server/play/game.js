@@ -169,10 +169,16 @@ var Game = function(restoreData, options, socket) {
 //POLICIES
 
 	this.peekPolicies = function() {
+                if ( this.policyDeck.length <= 2) {
+                        this.shufflePolicyDeck();
+                }
 		return this.policyDeck.slice(0, 3);
 	};
 
 	this.getTopPolicies = function(count) {
+                if (this.policyDeck.length <= 2) {
+                        this.shufflePolicyDeck();
+                }
 		if (!count) {
 			count = 3;
 		}
@@ -180,10 +186,11 @@ var Game = function(restoreData, options, socket) {
 			console.error(this.gid, 'Policy deck null', this.history.length);
 			this.shufflePolicyDeck();
 		}
+                if (this.policyDeck.length < count) {
+                        console.error(this.gid, 'Draw pile is less than expected under any circumstances', this.history.length);
+                        this.shufflePolicyDeck();
+                }
 		var policies = this.policyDeck.splice(0, count);
-		if (this.policyDeck.length < 3) {
-			this.shufflePolicyDeck();
-		}
 		return policies;
 	};
 
