@@ -19,7 +19,8 @@ var joinGameById = function(socket, gid, isSpectator) {
 
 		if (game) {
 			if (game.started) {
-				return 'started';
+				game.addPlayer(socket, 'spectator');
+				return true;
 			}
 			if (game.isFull()) {
 				return 'full';

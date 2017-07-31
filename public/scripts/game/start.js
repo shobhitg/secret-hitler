@@ -18,6 +18,8 @@ var Players = require('game/players');
 var Policies = require('game/policies');
 var State = require('game/state');
 
+var Socket = require('socket/socket');
+
 //LOCAL
 
 var startGame = function(data) {
@@ -183,6 +185,12 @@ var startGame = function(data) {
 		Overlay.show('start');
 		Game.playTurn();
 		// Cards.show('role');
+	} else if (State.initializedPlay && currentPlayer.isSpectator) {
+		Overlay.show('start');
+
+		var data = {};
+		data.action = 'new spectator';
+		Socket.emit('game action', data);
 	}
 };
 

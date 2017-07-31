@@ -42,6 +42,8 @@ var processAction = function(data) {
 		Game.failedGovernment(data.forced, 'Election vetoed');
 	} else if (action == 'veto overridden') {
 		Policies.vetoOverridden(data);
+	} else if (action == 'new spectator') {
+		Chat.addAction('is watching the game', data.uid);
 	} else {
 		if (data.canVeto) {
 			State.canVeto = true;

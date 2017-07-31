@@ -25,6 +25,11 @@ var chatAction = function(data, puid, game) {
 	}
 };
 
+var newSpectatorAction = function(data, puid, game) {
+	data.uid = puid;
+	game.emitAction('new spectator', data);
+}
+
 var quitAction = function(data, puid, game, callback) {
 	var wasPresident = game.isPresident(puid);
 	var wasChancellor = game.isChancellor(puid);
@@ -345,6 +350,8 @@ module.exports = {
 				data.veto = rawData.veto;
 				data.policyIndex = rawData.policyIndex;
 				recording = policyAction(data, puid, game);
+			} else if (action == 'new spectator') {
+				newSpectatorAction(data, puid, game);
 			} else {
 				data.uid = rawData.uid;
 				recording = powerAction(action, data, puid, data.uid, game);

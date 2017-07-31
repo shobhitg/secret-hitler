@@ -38,7 +38,7 @@ module.exports = {
 	},
 
 	inGovernment: function() {
-		return this.presidentIndex == this.localIndex || this.chancellorIndex == this.localIndex;
+		return CommonGame.getParticipants(this.players, 'players')[this.presidentIndex].index == this.localIndex || CommonGame.getParticipants(this.players, 'players')[this.chancellorIndex].index == this.localIndex;
 	},
 
 };
