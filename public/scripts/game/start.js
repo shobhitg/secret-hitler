@@ -87,60 +87,35 @@ var startGame = function(data) {
 	}
 
 	// Display players
-	var playerString = '<div class="player-section">';
 	var centerIndex = Math.ceil(State.playerCount / 2);
 
 	var floatIndex = 0;
 
-	var mobileNoPlayerSection = (window.innerWidth || document.body.clientWidth) < 500;
-
 	var playerIndex = 0;
-	State.players.forEach(function(player, index) {
 
-		if (player.uid == Data.uid) {
-			State.localPlayer = player;
-			State.localIndex = player.index;
-		}
-
-		if (player.isSpectator) {
-			return;
-		}
-
-		var centerBreak = playerIndex == centerIndex;
-		if (centerBreak && !mobileNoPlayerSection) {
-			playerString += '</div><div class="player-section bottom">';
-		}
-		var floatingLeft = floatIndex % 2 == 0;
-		var mobileRender = playerIndex % 2 == 0 ? ' mobile-left' : ' mobile-right';
-
-		var floatClass = floatingLeft ? 'left' : 'right';
-		var spectator = "";
-		if (centerBreak && !mobileNoPlayerSection) {
-			var evenRemaining = ((State.playerCount - playerIndex) % 2) == 0;
-			if (floatingLeft) {
-				if (!evenRemaining) {
-					floatClass = 'right clear';
-					++floatIndex;
-				}
-			} else {
-				if (evenRemaining) {
-					floatClass = 'left';
-					++floatIndex;
-				} else {
-					floatClass += ' clear';
-				}
-			}
-		}
-
-		var name = player.name + ' ['+(playerIndex+1)+']'; //TODO
-		playerString += '<div id="ps'+player.uid+'" class="player-slot '+floatClass + mobileRender + spectator +'" data-uid="'+player.uid+'"><div class="avatar image"><div class="vote" style="display:none;"></div></div><div class="contents"><div class="title"><h2>'+name+'</h2><span class="typing icon" style="display:none;">💬</span><span class="talking icon" style="display:none;">🎙</span></div><div class="chat"></div></div></div>';
-		++floatIndex;
-
-		playerIndex++;
+	var localPlayer = State.players.find(function(player) {
+		return player.uid == Data.uid;
 	});
-	playerString += '</div>';
 
-	$('#players').html(playerString);
+	State.localPlayer = localPlayer;
+	State.localIndex  = localPlayer.index;
+
+	var players = State.players.filter(function(player) {
+		return !player.isSpectator;
+	})
+
+	var sectionsString = "";
+	if ((window.innerWidth || document.body.clientWidth) < 500) {
+		sectionsString += fillPlayerSection(players, 0, players.length);
+	} else {
+		sectionsString += fillPlayerSection(players, 0, Math.ceil(players.length/2));
+		sectionsString += fillPlayerSection(players, Math.ceil(players.length/2), undefined, 'bottom', function() {
+			return (Math.floor(players.length / 2) % 2) ? '<div class="player-slot"></div>': '';
+		});
+	}
+
+
+	$('#players').html(sectionsString);
 
 	// Local player
 	if (State.localPlayer) {
@@ -185,6 +160,36 @@ var startGame = function(data) {
 		// Cards.show('role');
 	}
 };
+
+var playerTemplate = function(player, playerIndex) {
+
+	var name = player.name + ' ['+(playerIndex+1)+']';
+	return '<div id="ps'+ player.uid +'" class="player-slot" data-uid="'+ player.uid +'">' +
+				'<div class="avatar image">' +
+					'<div class="vote" style="display:none;"></div>' +
+				'</div>' +
+				'<div class="contents">' +
+					'<div class="title">' +
+						'<h2>'+name+'</h2>' +
+						'<span class="typing icon" style="display:none;">💬</span>' +
+						'<span class="talking icon" style="display:none;">🎙</span>' +
+					'</div>' +
+					'<div class="chat"></div>' +
+				'</div>' +
+			'</div>';
+}
+
+var fillPlayerSection = function(players, start, end, cssClass, callback) {
+	var playerIndex = start;
+	var playerString = '<div class="player-section '+ cssClass +'">';
+	if (callback) playerString += callback();
+	players.slice(start, end).forEach(function(player) {
+		playerString += playerTemplate(player, playerIndex);
+		playerIndex++;
+	});
+	playerString += '</div>';
+	return playerString;
+}
 
 //PUBLIC
 
