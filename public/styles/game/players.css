@@ -19,6 +19,7 @@
 	width: 49%;
 	padding: 16px;
 	height: 104px;
+	float: left;
 }
 
 .player-slot.left {
@@ -26,7 +27,7 @@
 	text-align: left;
 }
 
-.player-slot.right {
+.player-slot:nth-child(even) {
 	float: right;
 	flex-direction: row-reverse;
 	text-align: right;
