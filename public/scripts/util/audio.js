@@ -2,7 +2,7 @@
 
 //SETUP
 
-var ping = function(kFreq, kDecayTime, kGain) {
+var ping = function (kFreq, kDecayTime, kGain) {
     window.audioContext = window.audioContext || new (window.AudioContext || window.webkitAudioContext)();
     var kFreq = kFreq ? kFreq : 1000,
         kDecayTime = kDecayTime ? kDecayTime : 0.1,
@@ -19,63 +19,63 @@ var ping = function(kFreq, kDecayTime, kGain) {
     oscNode.stop(audioContext.currentTime + kStartTime + 12 * kDecayTime); // Stop when the sound decays by enough.
 };
 
-var gameStartingAlert = function(secondsRemaining) {
+var gameStartingAlert = function (secondsRemaining) {
     ping(secondsRemaining > 0 ? 200 : 200, 0.1, 0.2);
     ping(secondsRemaining > 0 ? 400 : 800, 0.1, 0.3);
     ping(secondsRemaining > 0 ? 1600 : 2800, 0.1, 0.3);
 };
 
-var chatAlert = function() {
-    ping(1200, 0.002, 0.2);
+var chatAlert = function () {
+    ping(3000, 0.0002, 10);
 };
 
-var chancellorChosenAlert = function(secondsRemaining) {
+var chancellorChosenAlert = function () {
     ping(400, 0.05, 0.2);
     ping(200, 0.2, 0.2);
 };
 
-var votedAlert = function() {
+var votedAlert = function () {
     ping(200, 0.02, 0.2);
     ping(1600, 0.02, 0.2);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(800, 0.005, 0.5);
     }, 100);
 };
 
-var enactedAlert = function(secondsRemaining) {
-    setTimeout(function(){
+var enactedAlert = function () {
+    setTimeout(function () {
         ping(1800, 0.005, 0.5);
     }, 0);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(1800, 0.005, 0.5);
     }, 50);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(1800, 0.005, 0.5);
     }, 100);
 };
 
 // Not in use currently.
 // But can be used for other kind of alerts in future.
-var alert1 = function(secondsRemaining) {
+var alert1 = function (secondsRemaining) {
     ping(200, 0.02);
     ping(2800, 0.02);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(800, 0.01);
     }, 100);
 };
 
 // Not in use currently.
 // But can be used for other kind of alerts in future.
-var alert2 = function(secondsRemaining) {
-//     ping(600, 0.1, 0.3);
-//     ping(200, 0.2, 0.1);
-    setTimeout(function(){
+var alert2 = function (secondsRemaining) {
+    //     ping(600, 0.1, 0.3);
+    //     ping(200, 0.2, 0.1);
+    setTimeout(function () {
         ping(1800, 0.005, 0.5);
     }, 0);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(2000, 0.005, 0.5);
     }, 50);
-    setTimeout(function(){
+    setTimeout(function () {
         ping(1800, 0.01, 0.5);
     }, 100);
 };
@@ -83,7 +83,7 @@ var alert2 = function(secondsRemaining) {
 //PUBLIC
 
 module.exports = {
-	gameStartingAlert: gameStartingAlert,
+    gameStartingAlert: gameStartingAlert,
     chatAlert: chatAlert,
     chancellorChosenAlert: chancellorChosenAlert,
     enactedAlert: enactedAlert,

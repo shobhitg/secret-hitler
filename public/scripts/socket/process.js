@@ -16,18 +16,18 @@ var Audio = require('util/audio');
 
 //LOCAL
 
-var processAction = function(data) {
+var processAction = function (data) {
 	var action = data.action;
 	if (action == 'abandoned') {
 		Players.abandoned(data);
 	} else if (action == 'chat') {
-//		Audio.chatAlert();
-		Chat.addMessage(data); 
+		Audio.chatAlert();
+		Chat.addMessage(data);
 	} else if (action == 'chancellor chosen') {
 		Audio.chancellorChosenAlert();
 		Players.chancellorChosen(data);
 	} else if (action == 'voted') {
-//		Audio.votedAlert();
+		//		Audio.votedAlert();
 		Game.voteCompleted(data);
 	} else if (action == 'vote process') {
 		Game.voteProcess(data);
@@ -78,7 +78,7 @@ var processAction = function(data) {
 
 Socket.on('game action', processAction);
 
-Socket.on('action error', function(data) {
+Socket.on('action error', function (data) {
 	window.alert('Unable to perform that last action: ' + data + '. Please try reloading the page and trying again.\n\nOtherwise, your game may be an in state where you can\'t continue. If so, please file a bug with the relevant information so I can get it fixed! You can do so via the "FEEDBACK" button in the game\'s menu. Thank you!');
 });
 
@@ -86,9 +86,9 @@ Socket.on('action error', function(data) {
 
 module.exports = {
 
-	history: function(history) {
+	history: function (history) {
 		State.rewinding = true;
-		history.forEach(function(action) {
+		history.forEach(function (action) {
 			processAction(action);
 		});
 		State.rewinding = false;

@@ -2,17 +2,17 @@
 
 module.exports = {
 
-	TESTING: process.env.NODE_ENV != 'production',
+	TESTING: process.env.NODE_ENV === 'development',
 
-	uuid: function(length) {
+	uuid: function (length) {
 		return Math.random().toString(36).substr(2, length || 16);
 	},
 
-	code: function() {
+	code: function () {
 		return Math.floor(Math.random() * 900000) + 100000;
 	},
 
-	rangeCheck: function(number, min, max, defaultValue) {
+	rangeCheck: function (number, min, max, defaultValue) {
 		if (number == null) {
 			return defaultValue;
 		}
@@ -25,16 +25,16 @@ module.exports = {
 		return number;
 	},
 
-//RANDOM
+	//RANDOM
 
-	rngInt: function(generator, span) {
+	rngInt: function (generator, span) {
 		return Math.abs(generator.int32()) % span;
 	},
 
-	randomize: function(generator, array) {
+	randomize: function (generator, array) {
 		var result = [], swapIndex;
 		var Utils = this;
-		array.forEach(function(val, idx) {
+		array.forEach(function (val, idx) {
 			if (!idx) {
 				result[0] = val;
 			} else {

@@ -20,7 +20,7 @@ var MINIMUM_GAME_SIZE = Utils.TESTING ? 3 : 5;
 var games = [];
 var lobbyGames, lobbyPlayers;
 
-var conpleteSetup = function(game, gid, socket) {
+var conpleteSetup = function (game, gid, socket) {
 	game.gid = gid;
 	game.generator = new SeedRandom(gid);
 	games.push(game);
@@ -30,11 +30,11 @@ var conpleteSetup = function(game, gid, socket) {
 	}
 };
 
-var emitLobby = function(target) {
+var emitLobby = function (target) {
 	if (!target) {
-		lobbyGames = games.filter(function(game) {
+		lobbyGames = games.filter(function (game) {
 			return game.isOpenPublic();
-		}).map(function(game) {
+		}).map(function (game) {
 			return {
 				gid: game.gid,
 				names: game.playersStateMap('name').join('・'),
@@ -65,23 +65,23 @@ var emitLobby = function(target) {
 	if (!target) {
 		target = Socket.to('lobby');
 	}
-	target.emit('lobby games stats', {games: lobbyGames, players: lobbyPlayers});
+	target.emit('lobby games stats', { games: lobbyGames, players: lobbyPlayers });
 };
 
-var Game = function(restoreData, options, socket) {
+var Game = function (restoreData, options, socket) {
 	options = options || {};
 
-	var game         = this,
-	    size         = options.size,
-	    privateGame  = options.privateGame,
-	    canViewVotes = options.canViewVotes || false;
+	var game = this,
+		size = options.size,
+		privateGame = options.privateGame,
+		canViewVotes = options.canViewVotes || false;
 
 	if (restoreData) {
 		this.replaying = true;
 		this.players = restoreData.player_ids.split(',');
 		this.playersState = {};
 		var names = restoreData.player_names.split(',');
-		this.players.forEach(function(puid, index) {
+		this.players.forEach(function (puid, index) {
 			game.playersState[puid] = {
 				index: index,
 				name: names[index],
@@ -118,12 +118,12 @@ var Game = function(restoreData, options, socket) {
 		if (socket) {
 			Player.data(socket.uid, 'joining', true);
 		}
-		DB.gid(function(gid) {
+		DB.gid(function (gid) {
 			if (socket) {
 				Player.data(socket.uid, 'joining', false);
 			}
 			conpleteSetup(game, gid, socket);
-			DB.insert('games', {id: gid, version: CommonConsts.VERSION, compatible_version: CommonConsts.COMPATIBLE_VERSION});
+			DB.insert('games', { id: gid, version: CommonConsts.VERSION, compatible_version: CommonConsts.COMPATIBLE_VERSION });
 			emitLobby();
 		});
 	}
@@ -135,17 +135,17 @@ var Game = function(restoreData, options, socket) {
 
 	this.turn = {};
 
-//PRIVATE
+	//PRIVATE
 
-	this.random = function(span) {
+	this.random = function (span) {
 		return Utils.rngInt(this.generator, span);
 	};
 
-	this.shuffle = function(array) {
+	this.shuffle = function (array) {
 		return Utils.randomize(this.generator, array);
 	};
 
-	this.shufflePolicyDeck = function() {
+	this.shufflePolicyDeck = function () {
 		this.policyDeck = [];
 
 		var cardsRemaining = 17 - this.enactedFascist - this.enactedLiberal;
@@ -153,11 +153,12 @@ var Game = function(restoreData, options, socket) {
 		for (var i = 0; i < cardsRemaining; ++i) {
 			this.policyDeck[i] = i < liberalsRemaining ? CommonConsts.LIBERAL : CommonConsts.FASCIST;
 		}
+		Chat.addAction(`There were only ${cardsRemaining} cards remaining in Draw Pile. So the deck has been shuffled`);
 		this.policyDeck = this.shuffle(this.policyDeck);
 	};
 
-	this.playersStateMap = function(key) {
-		return this.players.map(function(puid) {
+	this.playersStateMap = function (key) {
+		return this.players.map(function (puid) {
 			if (key == 'name') {
 				var isSpectator = game.playerState(puid, 'isSpectator');
 				return game.playerState(puid, key) + (isSpectator ? ' (watching)' : '');
@@ -166,19 +167,19 @@ var Game = function(restoreData, options, socket) {
 		});
 	};
 
-//POLICIES
+	//POLICIES
 
-	this.peekPolicies = function() {
-                if ( this.policyDeck.length <= 2) {
-                        this.shufflePolicyDeck();
-                }
+	this.peekPolicies = function () {
+		if (this.policyDeck.length <= 2) {
+			this.shufflePolicyDeck();
+		}
 		return this.policyDeck.slice(0, 3);
 	};
 
-	this.getTopPolicies = function(count) {
-                if (this.policyDeck.length <= 2) {
-                        this.shufflePolicyDeck();
-                }
+	this.getTopPolicies = function (count) {
+		if (this.policyDeck.length <= 2) {
+			this.shufflePolicyDeck();
+		}
 		if (!count) {
 			count = 3;
 		}
@@ -186,33 +187,33 @@ var Game = function(restoreData, options, socket) {
 			console.error(this.gid, 'Policy deck null', this.history.length);
 			this.shufflePolicyDeck();
 		}
-                if (this.policyDeck.length < count) {
-                        console.error(this.gid, 'Draw pile is less than expected under any circumstances', this.history.length);
-                        this.shufflePolicyDeck();
-                }
+		if (this.policyDeck.length < count) {
+			console.error(this.gid, 'Draw pile is less than expected under any circumstances', this.history.length);
+			this.shufflePolicyDeck();
+		}
 		var policies = this.policyDeck.splice(0, count);
 		return policies;
 	};
 
-	this.getTopPolicy = function() {
+	this.getTopPolicy = function () {
 		return this.getTopPolicies(1)[0];
 	};
 
-//LOBBY
+	//LOBBY
 
-	this.emit = function(name, data) {
+	this.emit = function (name, data) {
 		Socket.to(this.gid).emit(name, data);
 	};
 
-	this.emitExcept = function(exceptUid, name, data) {
-		this.players.forEach(function(puid) {
+	this.emitExcept = function (exceptUid, name, data) {
+		this.players.forEach(function (puid) {
 			if (puid != exceptUid) {
 				Player.emitTo(puid, name, data);
 			}
 		});
 	};
 
-	this.emitAction = function(name, data, secret) {
+	this.emitAction = function (name, data, secret) {
 		data.action = name;
 		if (this.finished && name != 'chat') {
 			data.roles = this.playersStateMap('role');
@@ -230,7 +231,7 @@ var Game = function(restoreData, options, socket) {
 		return data;
 	};
 
-	this.gameData = function(perspectiveUid) {
+	this.gameData = function (perspectiveUid) {
 		var sendHistory = this.history;
 		var sendPlayers = [];
 		var showFascists;
@@ -242,7 +243,7 @@ var Game = function(restoreData, options, socket) {
 				showFascists = CommonGame.isFascist(perspectiveRole);
 			}
 		}
-		this.players.forEach(function(uid, index) {
+		this.players.forEach(function (uid, index) {
 			var playerData = {
 				uid: uid,
 				name: game.playerState(uid, 'name'),
@@ -277,21 +278,21 @@ var Game = function(restoreData, options, socket) {
 		};
 	};
 
-	this.resetAutostart = function() {
+	this.resetAutostart = function () {
 		this.cancelAutostart();
 
 		if (this.enoughToStart()) {
 			var startDelay = Utils.TESTING ? 3 : 45;
 			this.scheduledStart = CommonUtil.now() + startDelay;
 
-			this.autoTimer = setTimeout(function() {
+			this.autoTimer = setTimeout(function () {
 				game.start();
 			}, startDelay * 1000);
 		}
 		this.emit('lobby game data', this.gameData());
 	};
 
-	this.cancelAutostart = function() {
+	this.cancelAutostart = function () {
 		if (this.autoTimer) {
 			clearTimeout(this.autoTimer);
 			this.autoTimer = null;
@@ -299,13 +300,13 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.emitStartPerspective = function(uid) {
+	this.emitStartPerspective = function (uid) {
 		Player.emitTo(uid, 'lobby game data', this.gameData(uid));
 	};
 
-	this.getParticipants = function(participants, participantType) {
+	this.getParticipants = function (participants, participantType) {
 		var self = this;
-		return participants.filter(function(puid) {
+		return participants.filter(function (puid) {
 			if (participantType == "players") {
 				return !self.playerState(puid, 'isSpectator');
 			} else {
@@ -314,7 +315,7 @@ var Game = function(restoreData, options, socket) {
 		})
 	}
 
-	this.start = function() {
+	this.start = function () {
 		if (this.started) {
 			return;
 		}
@@ -331,22 +332,22 @@ var Game = function(restoreData, options, socket) {
 		var spectators = this.getParticipants(this.players, "spectators");
 
 		this.started = true;
-		this.playerCount  = players.length;
+		this.playerCount = players.length;
 		this.currentCount = this.playerCount;
-		this.startIndex   = this.random(this.playerCount);
+		this.startIndex = this.random(this.playerCount);
 		this.positionIndex = this.startIndex;
 		this.setPresidentIndex(this.positionIndex);
 		this.shufflePolicyDeck();
 
 		if (!this.replaying) {
-			var idsData       = this.players.join(',');
-			var namesData     = this.playersStateMap('name').join(',');
-			DB.update('games', "id = '"+this.gid+"'", {
+			var idsData = this.players.join(',');
+			var namesData = this.playersStateMap('name').join(',');
+			DB.update('games', "id = '" + this.gid + "'", {
 				state: 1,
-				started_at:   CommonUtil.now(),
-				start_index:  this.startIndex,
+				started_at: CommonUtil.now(),
+				start_index: this.startIndex,
 				player_count: this.playerCount,
-				player_ids:   idsData,
+				player_ids: idsData,
 				player_names: namesData
 			});
 			DB.updatePlayers(this.players, 'started', this.gid, true);
@@ -359,13 +360,13 @@ var Game = function(restoreData, options, socket) {
 			fascistIndicies[i] = i < facistsCount ? 1 : 0;
 		}
 		fascistIndicies = this.shuffle(fascistIndicies);
-		players.forEach(function(puid, pidx) {
+		players.forEach(function (puid, pidx) {
 			var role = fascistIndicies[pidx];
 			game.playerState(puid, 'role', role);
 		});
 
 		// Emit
-		this.players.forEach(function(puid) {
+		this.players.forEach(function (puid) {
 			game.emitStartPerspective(puid);
 		});
 
@@ -377,17 +378,17 @@ var Game = function(restoreData, options, socket) {
 		emitLobby();
 	};
 
-	this.getFascistPower = function() {
+	this.getFascistPower = function () {
 		return CommonGame.getFascistPower(this.enactedFascist, this.playerCount);
 	};
 
-//STATE
+	//STATE
 
-	this.setPresidentIndex = function(index) {
+	this.setPresidentIndex = function (index) {
 		this.turn.president = this.getParticipants(this.players, "players")[index];
 	};
 
-	this.advanceTurn = function() {
+	this.advanceTurn = function () {
 		if (this.finished) {
 			return;
 		}
@@ -402,7 +403,7 @@ var Game = function(restoreData, options, socket) {
 		this.power = null;
 	};
 
-	this.failedElection = function() {
+	this.failedElection = function () {
 		++this.electionTracker;
 		var forcedPolicy;
 		if (this.electionTracker >= 3) {
@@ -416,21 +417,21 @@ var Game = function(restoreData, options, socket) {
 		return forcedPolicy;
 	};
 
-	this.finish = function(liberals, method) {
+	this.finish = function (liberals, method) {
 		if (!this.finished) {
 			console.log(game.gid, 'FIN', liberals, method);
 
-			var activePlayers = this.players.filter(function(puid) {
+			var activePlayers = this.players.filter(function (puid) {
 				return !game.playerState(puid, 'quit');
 			});
 			DB.updatePlayers(activePlayers, 'finished', null, true);
 
 			this.finished = true;
-			DB.update('games', "id = '"+this.gid+"'", {state: 2, finished_at: CommonUtil.now(), history: JSON.stringify(this.history), history_count: this.history.length, enacted_liberal: this.enactedLiberal, enacted_fascist: this.enactedFascist, liberal_victory: liberals, win_method: method});
+			DB.update('games', "id = '" + this.gid + "'", { state: 2, finished_at: CommonUtil.now(), history: JSON.stringify(this.history), history_count: this.history.length, enacted_liberal: this.enactedLiberal, enacted_fascist: this.enactedFascist, liberal_victory: liberals, win_method: method });
 		}
 	};
 
-	this.enactPolicy = function(policy, byVote) {
+	this.enactPolicy = function (policy, byVote) {
 		var fascistPower;
 		this.electionTracker = 0;
 		if (policy == CommonConsts.LIBERAL) {
@@ -457,9 +458,9 @@ var Game = function(restoreData, options, socket) {
 		return fascistPower;
 	};
 
-//PLAYERS
+	//PLAYERS
 
-	this.playerState = function(puid, key, value) {
+	this.playerState = function (puid, key, value) {
 		var state = this.playersState[puid];
 		if (state && key) {
 			if (value === undefined) {
@@ -470,7 +471,7 @@ var Game = function(restoreData, options, socket) {
 		return state;
 	};
 
-	this.addPlayer = function(socket, playerType) {
+	this.addPlayer = function (socket, playerType) {
 
 		var uid = socket.uid;
 		socket.leave('lobby');
@@ -501,7 +502,7 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.editPlayer = function(socket, isSpectator) {
+	this.editPlayer = function (socket, isSpectator) {
 		var uid = socket.uid;
 		this.playersState[uid].isSpectator = isSpectator;
 
@@ -509,7 +510,7 @@ var Game = function(restoreData, options, socket) {
 		emitLobby();
 	}
 
-	this.kill = function(uid, quitting) {
+	this.kill = function (uid, quitting) {
 		var playerState = this.playerState(uid);
 		if (playerState && !playerState.killed) {
 			if (quitting) {
@@ -521,7 +522,7 @@ var Game = function(restoreData, options, socket) {
 			playerState.killed = true;
 
 			if (!playerState.isSpectator) {
-				this.currentCount -= 1;	
+				this.currentCount -= 1;
 			}
 
 			if (!this.finished && this.isFuehrer(uid)) {
@@ -533,11 +534,11 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.removeSelf = function() {
+	this.removeSelf = function () {
 		this.cancelAutostart();
 
 		var gid = this.gid;
-		games = games.filter(function(g) {
+		games = games.filter(function (g) {
 			return g.gid != gid;
 		});
 		if (!this.finished) {
@@ -545,7 +546,7 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.disconnect = function(socket) {
+	this.disconnect = function (socket) {
 		if (!this.started || this.finished) {
 			this.remove(socket);
 		} else {
@@ -553,7 +554,7 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.remove = function(socket, uid) {
+	this.remove = function (socket, uid) {
 		if (socket) {
 			socket.leave(this.gid);
 			uid = socket.uid;
@@ -567,14 +568,14 @@ var Game = function(restoreData, options, socket) {
 			playerState.quit = true;
 			this.kill(uid, !this.finished);
 		} else {
-			this.players = this.players.filter(function(puid) {
+			this.players = this.players.filter(function (puid) {
 				return puid != uid;
 			});
 			delete this.playersState[uid];
 			if (this.players.length == 0) {
 				this.removeSelf();
 			} else {
-				this.players.forEach(function(puid, pidx) {
+				this.players.forEach(function (puid, pidx) {
 					game.playerState(puid, 'index', pidx);
 				});
 			}
@@ -590,9 +591,9 @@ var Game = function(restoreData, options, socket) {
 		return true;
 	};
 
-//HELPERS
+	//HELPERS
 
-	this.error = function(description, puid, data) {
+	this.error = function (description, puid, data) {
 		if (description == this.lastError) {
 			if (this.lastAction) {
 				console.error('\nGE', this.gid, puid, description, data);
@@ -609,22 +610,22 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.addToHistory = function(step, save) {
+	this.addToHistory = function (step, save) {
 		this.history.push(step);
 		if (save) {
-			DB.update('games', "id = '"+this.gid+"'", {history: JSON.stringify(this.history), history_count: this.history.length});
+			DB.update('games', "id = '" + this.gid + "'", { history: JSON.stringify(this.history), history_count: this.history.length });
 		}
 	};
 
-	this.isChancellor = function(uid) {
+	this.isChancellor = function (uid) {
 		return uid == this.turn.chancellor;
 	};
 
-	this.isPresident = function(uid) {
+	this.isPresident = function (uid) {
 		return uid == this.turn.president;
 	};
 
-	this.fuehrerRemaining = function() {
+	this.fuehrerRemaining = function () {
 		for (var idx = 0; idx < this.players.length; idx += 1) {
 			var puid = this.players[idx];
 			if (this.isFuehrer(puid) && !this.playerState(puid, 'killed')) {
@@ -633,39 +634,39 @@ var Game = function(restoreData, options, socket) {
 		}
 	};
 
-	this.isFuehrer = function(uid) {
+	this.isFuehrer = function (uid) {
 		var role = this.playerState(uid, 'role');
 		return role && CommonGame.isFuehrer(role) ? role : false;
 	};
 
-	this.enoughToStart = function() {
+	this.enoughToStart = function () {
 		var self = this;
-		var players = this.players.filter(function(userId) {
+		var players = this.players.filter(function (userId) {
 			return !self.playersState[userId].isSpectator;
 		})
 		return players.length >= MINIMUM_GAME_SIZE;
 	};
 
-	this.isFull = function() {
+	this.isFull = function () {
 		return this.players.length >= this.maxSize;
 	};
 
-	this.isOpen = function() {
+	this.isOpen = function () {
 		return this.gid != null && !this.started && !this.isFull();
 	};
 
-	this.isOpenPublic = function() {
+	this.isOpenPublic = function () {
 		return !this.private && this.isOpen();
 	};
 
 	return this;
 };
 
-Game.games = function() {
+Game.games = function () {
 	return games;
 };
 
-Game.get = function(gid) {
+Game.get = function (gid) {
 	for (var idx = 0; idx < games.length; idx += 1) {
 		var game = games[idx];
 		if (game.gid == gid) {
@@ -674,7 +675,7 @@ Game.get = function(gid) {
 	}
 };
 
-Game.existsFor = function(socket) {
+Game.existsFor = function (socket) {
 	if (socket.game == null) {
 		var sharedGid = Player.data(socket.uid, 'gid');
 		if (!sharedGid) {

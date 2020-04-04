@@ -11,10 +11,10 @@ var Data = require('util/data');
 
 var params;
 if (Data.uid && Data.auth) {
-	params = {query: 'uid=' + Data.uid + '&auth=' + Data.auth + '&v=' + CommonConsts.VERSION};
+	params = { query: 'uid=' + Data.uid + '&auth=' + Data.auth + '&v=' + CommonConsts.VERSION };
 }
 
-var socket = SocketIO(Config.TESTING ? 'http://localhost:8004' : 'http://secrethitler.games/', params);
+var socket = SocketIO(Config.TESTING ? 'http://localhost:8004' : 'http://ec2-54-183-204-38.us-west-1.compute.amazonaws.com:8004/', params);
 
 //PUBLIC
 
